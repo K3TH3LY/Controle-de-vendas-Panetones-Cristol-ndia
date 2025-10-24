@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Panetones</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Tela de Login -->
+        <div class="login-screen active">
+            <h1>🎄 Controle de Panetones 🎄</h1>
+            <div id="loginError" class="error"></div>
+            <input type="password" id="passwordInput" placeholder="Digite a senha">
+            <button onclick="login()">Entrar</button>
+        </div>
+
+        <!-- Seleção de Unidade -->
+        <div class="unit-selection">
+            <h1>Selecione a Unidade</h1>
+            <button onclick="selectUnit('cristolandia')">Cristolândia</button>
+            <button onclick="selectUnit('viver')">Viver</button>
+            <button onclick="selectUnit('reino')">Reino</button>
+        </div>
+
+        <!-- Detalhes da Unidade -->
+        <div class="unit-details">
+            <h2 id="unitTitle"></h2>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total em Estoque:</span>
+                    <span class="stat-value" id="totalStock">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Vendidos:</span>
+                    <span class="stat-value" id="totalSold">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Valor Total das Vendas:</span>
+                    <span class="stat-value money" id="totalRevenue">R$ 0,00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Chocolate Restante:</span>
+                    <span class="stat-value" id="chocolateStock">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Frutas Restante:</span>
+                    <span class="stat-value" id="frutasStock">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Editar Estoque:</span>
+                    <button onclick="showStockModal()">🔧 Ajustar</button>
+                </div>
+            </div>
+
+            <button onclick="showAddSaleModal()">➕ Adicionar Nova Venda</button>
+            <button class="btn-secondary" onclick="showHistory()">📋 Ver Histórico</button>
+            <button class="btn-success" onclick="downloadExcel()">📥 Baixar Planilha</button>
+            <button class="btn-back" onclick="backToUnits()">⬅️ Voltar</button>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Venda -->
+    <div id="addSaleModal" class="modal">
+        <div class="modal-content">
+            <h2>Nova Venda</h2>
+            <div id="saleForm"></div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Estoque -->
+    <div id="stockModal" class="modal">
+        <div class="modal-content">
+            <h2>Ajustar Estoque (Senha necessária)</h2>
+            <input type="password" id="stockPassword" placeholder="Digite a senha">
+            <div class="stock-inputs" style="display:none;">
+                <div class="form-group">
+                    <label>Panetones de Chocolate:</label>
+                    <input type="number" id="editChocolateStock" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Panetones de Frutas:</label>
+                    <input type="number" id="editFrutasStock" min="0">
+                </div>
+                <button onclick="saveStock()">Salvar Estoque</button>
+            </div>
+            <button class="btn-back" onclick="closeStockModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Histórico -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <h2>Histórico de Vendas</h2>
+            <div class="search-box" id="searchBoxContainer" style="display:none;">
+                <input type="text" id="searchInput" placeholder="🔍 Pesquisar por nome da igreja..." onkeyup="filterHistory()">
+            </div>
+            <div id="historyList" class="history"></div>
+            <button class="btn-back" onclick="closeHistoryModal()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Venda -->
+    <div id="editSaleModal" class="modal">
+        <div class="modal-content">
+            <h2>Editar Venda</h2>
+            <div id="editSaleForm"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
