@@ -1,5 +1,5 @@
-const PASSWORD = '2535'; // senha de login da aplicação
-const STOCK_PASSWORD = '7563'; // senha para editar estoque
+const PASSWORD = '3101'; // senha de login da aplicação
+const STOCK_PASSWORD = '0408'; // senha para editar estoque
 const PANETTONE_PRICE = 450.00;
 
 let currentUnit = '';
