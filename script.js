@@ -1,3 +1,70 @@
+// ============= CONFIGURAÇÃO DO FIREBASE =============
+const firebaseConfig = {
+    apiKey: "AIzaSyArk5VuNY1TOc7lJxkM50VyxKlQCBnX2Jk",
+    authDomain: "controle-de-panetones.firebaseapp.com",
+    projectId: "controle-de-panetones",
+    storageBucket: "controle-de-panetones.firebasestorage.app",
+    messagingSenderId: "898612281687",
+    appId: "1:898612281687:web:04a0501d0d654fd01afe12",
+    measurementId: "G-ERLRQQH78W"
+};
+
+// Inicializar Firebase
+let db;
+let isFirebaseConnected = false;
+
+// Função para atualizar indicador visual do Firebase
+function updateFirebaseStatus(connected, message) {
+    let statusEl = document.getElementById('firebaseStatus');
+    
+    // Criar elemento se não existir
+    if (!statusEl) {
+        statusEl = document.createElement('div');
+        statusEl.id = 'firebaseStatus';
+        statusEl.style.cssText = `
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 9999;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        `;
+        document.body.appendChild(statusEl);
+    }
+    
+    const dot = '<span style="width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span>';
+    
+    if (connected) {
+        statusEl.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+        statusEl.style.color = 'white';
+        statusEl.innerHTML = dot.replace('inline-block', 'inline-block; background: #fff') + message;
+    } else {
+        statusEl.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+        statusEl.style.color = 'white';
+        statusEl.innerHTML = dot.replace('inline-block', 'inline-block; background: #fff') + message;
+    }
+}
+
+try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    isFirebaseConnected = true;
+    console.log('Firebase conectado com sucesso');
+    updateFirebaseStatus(true, 'Conectado ao Firebase');
+} catch (error) {
+    console.error('Erro ao conectar Firebase:', error);
+    isFirebaseConnected = false;
+    updateFirebaseStatus(false, 'Offline - Cache Local');
+}
+
+// ============= VARIÁVEIS GLOBAIS =============
 const PASSWORD = '3101'; // senha de login da aplicação
 const STOCK_PASSWORD = '0408'; // senha para editar estoque
 const PANETTONE_PRICE = 450.00;
@@ -11,28 +78,121 @@ let salesData = {
     reino: { chocolate: 50, frutas: 50, sales: [] }
 };
 
-// Carregar dados do localStorage
-function loadData() {
-    const saved = localStorage.getItem('panetonesSalesData');
-    if (saved) salesData = JSON.parse(saved);
+// ============= FUNÇÕES DE DADOS (FIREBASE + LOCALSTORAGE) =============
+
+// Carregar dados do Firebase ou localStorage
+async function loadData() {
+    if (!isFirebaseConnected) {
+        loadDataFromLocalStorage();
+        updateFirebaseStatus(false, 'Usando Cache Local');
+        return;
+    }
+
+    try {
+        updateFirebaseStatus(true, 'Sincronizando...');
+        const docRef = db.collection('panettones').doc('salesData');
+        const doc = await docRef.get();
+        
+        if (doc.exists) {
+            salesData = doc.data();
+            localStorage.setItem('panetonesSalesData', JSON.stringify(salesData));
+            console.log('Dados carregados do Firebase');
+            updateFirebaseStatus(true, 'Sincronizado ✓');
+        } else {
+            // Primeira vez - criar documento no Firebase
+            await saveData();
+        }
+    } catch (error) {
+        console.error('Erro ao carregar do Firebase:', error);
+        loadDataFromLocalStorage();
+        updateFirebaseStatus(false, 'Erro - Usando Cache');
+    }
 }
 
-// Salvar dados no localStorage
-function saveData() {
-    localStorage.setItem('panetonesSalesData', JSON.stringify(salesData));
+// Carregar do localStorage
+function loadDataFromLocalStorage() {
+    const saved = localStorage.getItem('panetonesSalesData');
+    if (saved) {
+        salesData = JSON.parse(saved);
+        console.log('Dados carregados do localStorage');
+    }
 }
+
+// Salvar dados no Firebase e localStorage
+async function saveData() {
+    // Sempre salvar no localStorage como backup
+    localStorage.setItem('panetonesSalesData', JSON.stringify(salesData));
+    
+    if (!isFirebaseConnected) {
+        updateFirebaseStatus(false, 'Salvo Localmente');
+        return;
+    }
+
+    try {
+        updateFirebaseStatus(true, 'Salvando...');
+        await db.collection('panettones').doc('salesData').set(salesData);
+        console.log('Dados salvos no Firebase');
+        updateFirebaseStatus(true, 'Salvo na Nuvem ✓');
+        
+        // Voltar para "Conectado" após 2 segundos
+        setTimeout(() => {
+            if (isFirebaseConnected) {
+                updateFirebaseStatus(true, 'Conectado ao Firebase');
+            }
+        }, 2000);
+    } catch (error) {
+        console.error('Erro ao salvar no Firebase:', error);
+        updateFirebaseStatus(false, 'Erro ao Salvar');
+    }
+}
+
+// ============= FUNÇÕES PRINCIPAIS =============
 
 // Login da aplicação
-function login() {
+async function login() {
     const password = document.getElementById('passwordInput').value;
     if (password === PASSWORD) {
         document.querySelector('.login-screen').classList.remove('active');
         document.querySelector('.unit-selection').classList.add('active');
         document.getElementById('loginError').textContent = '';
+        await loadData(); // Carregar dados do Firebase ao fazer login
     } else {
         document.getElementById('loginError').textContent = 'Senha incorreta!';
     }
 }
+
+// Permitir login com Enter
+document.addEventListener('DOMContentLoaded', () => {
+    const passwordInput = document.getElementById('passwordInput');
+    if (passwordInput) {
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    }
+
+    // Verificar senha de estoque
+    const stockPasswordInput = document.getElementById('stockPassword');
+    if (stockPasswordInput) {
+        stockPasswordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const pass = document.getElementById('stockPassword').value;
+                if (pass === STOCK_PASSWORD) {
+                    const unit = salesData[currentUnit];
+                    document.getElementById('editChocolateStock').value = unit.chocolate;
+                    document.getElementById('editFrutasStock').value = unit.frutas;
+                    document.querySelector('.stock-inputs').style.display = 'block';
+                } else {
+                    alert('Senha incorreta!');
+                }
+            }
+        });
+    }
+
+    // Carregar dados do localStorage ao iniciar
+    loadDataFromLocalStorage();
+});
 
 // Seleção da unidade
 function selectUnit(unit) {
@@ -65,28 +225,13 @@ function showStockModal() {
     document.getElementById('stockPassword').value = '';
 }
 
-// Verificar senha e mostrar inputs de estoque
-document.getElementById('stockPassword').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        const pass = document.getElementById('stockPassword').value;
-        if (pass === STOCK_PASSWORD) {
-            const unit = salesData[currentUnit];
-            document.getElementById('editChocolateStock').value = unit.chocolate;
-            document.getElementById('editFrutasStock').value = unit.frutas;
-            document.querySelector('.stock-inputs').style.display = 'block';
-        } else {
-            alert('Senha incorreta!');
-        }
-    }
-});
-
 // Salvar estoque ajustado
-function saveStock() {
+async function saveStock() {
     const chocolateQty = parseInt(document.getElementById('editChocolateStock').value) || 0;
     const frutasQty = parseInt(document.getElementById('editFrutasStock').value) || 0;
     salesData[currentUnit].chocolate = chocolateQty;
     salesData[currentUnit].frutas = frutasQty;
-    saveData();
+    await saveData();
     updateStats();
     closeStockModal();
     alert('Estoque atualizado com sucesso!');
@@ -190,7 +335,7 @@ function closeModal() {
 }
 
 // Adicionar venda e descontar automaticamente do estoque
-function addSale() {
+async function addSale() {
     const unit = salesData[currentUnit];
     const chocolateQty = parseInt(document.getElementById('chocolateQty').value) || 0;
     const frutasQty = parseInt(document.getElementById('frutasQty').value) || 0;
@@ -236,7 +381,7 @@ function addSale() {
     unit.chocolate -= chocolateQty;
     unit.frutas -= frutasQty;
     unit.sales.push(saleData);
-    saveData();
+    await saveData();
     updateStats();
     closeModal();
     alert('Venda registrada com sucesso!');
@@ -287,7 +432,7 @@ function renderHistory(sales) {
                      <button class="btn-edit" onclick="editSale(${realIndex})">✏️ Editar</button>`;
         }
 
-        html += '</div>';
+        html += `<small>${sale.date}</small></div>`;
         return html;
     }).join('');
 }
@@ -363,7 +508,6 @@ function editSale(index) {
             <button onclick="saveEditedSale()">Salvar Alterações</button>
             <button class="btn-back" onclick="closeEditModal()">Cancelar</button>
             <button class="btn-danger" onclick="confirmDeleteSale(${index})">🗑️ Excluir Venda</button>
-
         `;
     } else {
         editSaleForm.innerHTML = `
@@ -381,13 +525,14 @@ function editSale(index) {
             </div>
             <button onclick="saveEditedSale()">Salvar Alterações</button>
             <button class="btn-back" onclick="closeEditModal()">Cancelar</button>
+            <button class="btn-danger" onclick="confirmDeleteSale(${index})">🗑️ Excluir Venda</button>
         `;
     }
     document.getElementById('editSaleModal').classList.add('active');
 }
 
 // Salvar venda editada
-function saveEditedSale() {
+async function saveEditedSale() {
     const unit = salesData[currentUnit];
     const sale = unit.sales[editingSaleIndex];
 
@@ -416,12 +561,14 @@ function saveEditedSale() {
         sale.buyer = document.getElementById('buyerName').value.trim();
     }
 
-    saveData();
+    await saveData();
     updateStats();
     closeEditModal();
     showHistory();
 }
- function confirmDeleteSale(index) {
+
+// Confirmar exclusão de venda
+async function confirmDeleteSale(index) {
     const senha = prompt("Digite a senha para excluir a venda:");
     if (senha !== STOCK_PASSWORD) {
         alert("❌ Senha incorreta. A exclusão foi cancelada.");
@@ -439,7 +586,7 @@ function saveEditedSale() {
         // Remove a venda
         unit.sales.splice(index, 1);
 
-        saveData();
+        await saveData();
         updateStats();
         closeEditModal();
         showHistory();
@@ -509,6 +656,3 @@ function downloadExcel() {
     link.download = `${currentUnit}_vendas.csv`;
     link.click();
 }
-
-// Inicialização
-loadData();
