@@ -612,5 +612,4 @@ link.href = URL.createObjectURL(blob);
 link.download = `${currentUnit}_vendas.csv`;
 link.click();
 ```
-
 }
