@@ -463,39 +463,39 @@ function editSale(index) {
         editSaleForm.innerHTML = `
             <div class="form-group">
                 <label>Igreja:</label>
-                <input type="text" id="igreja" value="${sale.igreja}">
+                <input type="text" id="editigreja" value="${sale.igreja}">
             </div>
             <div class="form-group">
                 <label>Responsável da Igreja:</label>
-                <input type="text" id="responsavelIgreja" value="${sale.responsavelIgreja}">
+                <input type="text" id="editresponsavelIgreja" value="${sale.responsavelIgreja}">
             </div>
             <div class="form-group">
                 <label>Responsável da Cristolândia:</label>
-                <input type="text" id="responsavelCristolandia" value="${sale.responsavelCristolandia}">
+                <input type="text" id="editresponsavelCristolandia" value="${sale.responsavelCristolandia}">
             </div>
             <div class="form-group">
                 <label>Email:</label>
-                <input type="email" id="email" value="${sale.email}">
+                <input type="email" id="editemail" value="${sale.email}">
             </div>
             <div class="form-group">
                 <label>Contato:</label>
-                <input type="tel" id="contato" value="${sale.contato}">
+                <input type="tel" id="editcontato" value="${sale.contato}">
             </div>
             <div class="form-group">
                 <label>Chocolate:</label>
-                <input type="number" id="chocolateQty" value="${sale.chocolateQty}" min="0">
+                <input type="number" id="editchocolateQty" value="${sale.chocolateQty}" min="0">
             </div>
             <div class="form-group">
                 <label>Frutas:</label>
-                <input type="number" id="frutasQty" value="${sale.frutasQty}" min="0">
+                <input type="number" id="editfrutasQty" value="${sale.frutasQty}" min="0">
             </div>
             <div class="checkbox-group">
-                <input type="checkbox" id="entregue" ${sale.entregue?'checked':''}>
+                <input type="checkbox" id="editentregue" ${sale.entregue?'checked':''}>
                 <label for="entregue">Entregue?</label>
             </div>
             <div class="form-group">
                 <label>Pagamento:</label>
-                <select id="formaPagamento">
+                <select id="editformaPagamento">
                     <option value="nao_pago" ${sale.formaPagamento==='nao_pago'?'selected':''}>Não Pago</option>
                     <option value="pix" ${sale.formaPagamento==='pix'?'selected':''}>PIX</option>
                     <option value="dinheiro" ${sale.formaPagamento==='dinheiro'?'selected':''}>Dinheiro</option>
@@ -504,7 +504,7 @@ function editSale(index) {
             </div>
             <div class="form-group">
                 <label>Observação:</label>
-                <textarea id="observacao">${sale.observacao||''}</textarea>
+                <textarea id="editobservacao">${sale.observacao||''}</textarea>
             </div>
             <button onclick="saveEditedSale()">Salvar Alterações</button>
             <button class="btn-back" onclick="closeEditModal()">Cancelar</button>
