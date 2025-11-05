@@ -537,8 +537,8 @@ async function saveEditedSale() {
     const unit = salesData[currentUnit];
     const sale = unit.sales[editingSaleIndex];
 
-    const newChocolate = parseInt(document.getElementById('chocolateQty').value) || 0;
-    const newFrutas = parseInt(document.getElementById('frutasQty').value) || 0;
+    const newChocolate = parseInt(document.getElementById('editchocolateQty').value) || 0;
+    const newFrutas = parseInt(document.getElementById('editfrutasQty').value) || 0;
 
     // Ajuste automático do estoque
     const chocolateDiff = sale.chocolateQty - newChocolate;
@@ -550,14 +550,14 @@ async function saveEditedSale() {
     sale.frutasQty = newFrutas;
 
     if (currentUnit === 'cristolandia') {
-        sale.igreja = document.getElementById('igreja').value.trim();
-        sale.responsavelIgreja = document.getElementById('responsavelIgreja').value.trim();
-        sale.responsavelCristolandia = document.getElementById('responsavelCristolandia').value.trim();
-        sale.email = document.getElementById('email').value.trim();
-        sale.contato = document.getElementById('contato').value.trim();
-        sale.entregue = document.getElementById('entregue').checked;
-        sale.formaPagamento = document.getElementById('formaPagamento').value;
-        sale.observacao = document.getElementById('observacao').value.trim();
+        sale.igreja = document.getElementById('editigreja').value.trim();
+        sale.responsavelIgreja = document.getElementById('editresponsavelIgreja').value.trim();
+        sale.responsavelCristolandia = document.getElementById('editresponsavelCristolandia').value.trim();
+        sale.email = document.getElementById('editemail').value.trim();
+        sale.contato = document.getElementById('editcontato').value.trim();
+        sale.entregue = document.getElementById('editentregue').checked;
+        sale.formaPagamento = document.getElementById('editformaPagamento').value;
+        sale.observacao = document.getElementById('editobservacao').value.trim();
     } else {
         sale.buyer = document.getElementById('buyerName').value.trim();
     }
